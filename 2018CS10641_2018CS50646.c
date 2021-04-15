@@ -96,9 +96,14 @@ void write_output(char fname[], double **arr, int n)
 
 int main(int argc, char* argv[]){
 
+    int size = atoi(argv[1]);
+    char input[] = argv[2];
+    int thr_proc = atoi(argv[3]);
+    int strategy = atoi(argv[4]);
 
-
-
+    if(strategy == 0){
+        
+    }
 
     return 0;
 }

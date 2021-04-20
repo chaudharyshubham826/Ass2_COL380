@@ -17,7 +17,6 @@ elif [ $4 -ne 0 ] && [ $4 -ne 1 ] && [ $4 -ne 2 ] && [ $4 -ne 3 ] && [ $4 -ne 4 
 	echo "The fourth argument should either 0, 1, 2, 3 or 4"
 
 else
-	then
 	if [ -f $2 ] 
 		then
 		./exec $1 $2 $3 $4

@@ -82,6 +82,19 @@ void write_output(char fname[], double **arr, int n)
 {
     printf("writing output\n");
     FILE *f = fopen(fname, "w");
+
+    printf(".......................................................................\n");
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            // fscanf(f, "%d", &num);
+            printf("%f\n", arr[i][j]);
+            // inp[i][j] = num;
+        }
+    }
+    printf(".......................................................................\n");
+
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
@@ -142,11 +155,12 @@ int main(int argc, char* argv[]){
             inp[i][j] = num;
         }
     }
-    printf("going well 3\n");
+    // printf("going well 3\n");
 
     fclose(f);
 
-    printf("going well 4\n");
+    // printf("going well 4\n");
+
 
     double **L;
     L = (double **)malloc(sizeof(double *) * size);
@@ -173,15 +187,26 @@ int main(int argc, char* argv[]){
     // double const **A = (double const **)inp;
 
     if(strategy == 0){
-        printf("str0\n");
+        // printf("str0\n");
         crout(inp, L, U, size);
+        printf(".......................................................................\n");
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                // fscanf(f, "%d", &num);
+                printf("%d\n", inp[i][j]);
+                // inp[i][j] = num;
+            }
+        }
+        printf(".......................................................................\n");
         char out_0_A[] = "out_0_A.txt";
         char out_0_L[] = "out_0_L.txt";
         char out_0_U[] = "out_0_U.txt";
 
         
 
-        write_output("out_0_A.txt", inp, size);
+        write_output(out_0_A, inp, size);
         write_output(out_0_L, L, size);
         write_output(out_0_U, U, size);
     }

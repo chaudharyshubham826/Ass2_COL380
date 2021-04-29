@@ -1,252 +1,108 @@
-void crout_strategy2(double **A, double **L, double **U, int n) {
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<mpi.h>
 
-    double sum = 0;
-    
-    #pragma omp parallel sections
-    {
-      #pragma omp section
-      {
-        for(int i=0; i<n/8; i++){
-          U[i][i] = 1;
+void write_output(char fname[], double** arr, int n ){
+    FILE *f = fopen(fname, "w");
+    printf("writing\n");
+    for( int i = 0; i < n; i++){
+        for(int j = 0; j < n; j++){
+            fprintf(f, "%0.12f ", arr[i][j]);
         }
-      }
-
-      #pragma omp section
-      {
-        for(int i=n/8; i<2*n/8 ; i++){
-          U[i][i] = 1;
-        }
-      }
-
-      #pragma omp section
-      {
-        for(int i=2*n/8; i<3*n/8 ; i++){
-          U[i][i] = 1;
-        }
-      }
-
-      #pragma omp section
-      {
-        for(int i=3*n/8; i<4*n/8 ; i++){
-          U[i][i] = 1;
-        }
-      }
-
-      #pragma omp section
-      {
-        for(int i=4*n/8; i<5*n/8 ; i++){
-          U[i][i] = 1;
-        }
-      }
-
-      #pragma omp section
-      {
-        for(int i=5*n/8; i<6*n/8 ; i++){
-          U[i][i] = 1;
-        }
-      }
-
-      #pragma omp section
-      {
-        for(int i=6*n/8; i<7*n/8 ; i++){
-          U[i][i] = 1;
-        }
-      }
-
-      #pragma omp section
-      {
-        for(int i=7*n/8; i < n ; i++){
-          U[i][i] = 1;
-        }
-      }
+        fprintf(f, "\n");
     }
+    fclose(f);
+}
 
+int main(int argc, char* argv[]){
+MPI_Init(&argc, &argv);
+int t,pid;
+MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+MPI_Comm_size(MPI_COMM_WORLD, &t);
+int n = atoi(argv[1]);
+  char *input_file = argv[2];
+  int strat = 4;
+  
+  double** A = malloc(n * sizeof(double*));
+  for(int i=0; i<n; i++){
+    A[i] = malloc(n * sizeof(double*));
+  }
 
-    
-    for (int j = 0; j < n; j++) {
-        
-        for (int i = j; i < n; i++) {
-            sum = 0;
-            
-            #pragma omp parallel sections
-            {
-              #pragma omp section
-              {
-                double local_sum = 0;
-                for (int k = 0; k <= j/8-1; k++) {
-                    local_sum = local_sum + L[i][k] * U[k][j];
+  FILE *infile;
+  infile = fopen(input_file, "r");
+  for(int i=0; i<n; i++){
+    for(int j=0; j<n; j++){
+      if(!fscanf(infile, "%lf", &A[i][j]))
+        break;
+    }
+  }
+ 
+  fclose(infile);
+   
+
+   int i, j, k;
+   double** L = malloc(n * sizeof(double*));
+    for(int i=0; i<n; i++){
+      L[i] = malloc(n * sizeof(double*));
+    }
+    double** U = malloc(n * sizeof(double*));
+    for(int i=0; i<n; i++){
+      U[i] = malloc(n * sizeof(double*));
+    }
+    for (int i=0;i<n;i++){
+    for (int j=0;j<n;j++){
+    L[i][j] = 0;
+    U[i][j] = 0;
+    }
+    }
+   double sum = 0;
+    for (i = 0; i < n; i++) {
+        U[i][i] = 1;
+    }
+    for(j=0;j<n;j++){
+        for(i=j;i<n;i++){
+            if(i%t == pid){
+                sum = 0;
+                for (k = 0; k < j; k++) {
+                    sum = sum + L[i][k] * U[k][j];	
                 }
-                #pragma omp critical
-                  {sum = sum + local_sum;}
-              }
-
-              #pragma omp section
-              {
-                double local_sum = 0;
-                for (int k = j/8; k <= 2*j/8-1; k++) {
-                    local_sum = local_sum + L[i][k] * U[k][j];
-                }
-                #pragma omp critical
-                  {sum = sum + local_sum;}
-              }
-
-              #pragma omp section
-              {
-                double local_sum = 0;
-                for (int k = 2*j/8; k <= 3*j/8-1; k++) {
-                    local_sum = local_sum + L[i][k] * U[k][j];
-                }
-                #pragma omp critical
-                sum = sum + local_sum;
-              }
-
-              #pragma omp section
-              {
-                double local_sum = 0;
-                for (int k = 3*j/8; k <= 4*j/8-1; k++) {
-                    local_sum = local_sum + L[i][k] * U[k][j];
-                }
-                #pragma omp critical
-                sum = sum + local_sum;
-              }
-
-              #pragma omp section
-              {
-                double local_sum = 0;
-                for (int k = 4*j/8; k <= 5*j/8-1; k++) {
-                    local_sum = local_sum + L[i][k] * U[k][j];
-                }
-                #pragma omp critical
-                {sum = sum + local_sum;}
-              }
-
-              #pragma omp section
-              {
-                double local_sum = 0;
-                for (int k = 5*j/8; k <= 6*j/8-1; k++) {
-                    local_sum = local_sum + L[i][k] * U[k][j];
-                }
-                #pragma omp critical
-                {sum = sum + local_sum;}
-              }
-
-              #pragma omp section
-              {
-                double local_sum = 0;
-                for (int k = 6*j/8; k <= 7*j/8-1; k++) {
-                    local_sum = local_sum + L[i][k] * U[k][j];
-                }
-                #pragma omp critical
-                {sum = sum + local_sum;}
-              }
-
-              #pragma omp section
-              {
-                double local_sum = 0;
-                for (int k = 7*j/8; k <= j-1; k++) {
-                    local_sum = local_sum + L[i][k] * U[k][j];
-                }
-                #pragma omp critical
-                {sum = sum + local_sum;}
-              }
+                L[i][j] = A[i][j] - sum;
+                //printf("%0.3lf \n %d %d ",sum, i,j);
             }
-
-            L[i][j] = A[i][j] - sum;
+            MPI_Bcast(
+            &L[i][j],
+            1,
+            MPI_DOUBLE,
+            i%t,
+            MPI_COMM_WORLD);
         }
-        
-        for (int i = j; i < n; i++) {
-          sum = 0;
-          /*
-          for (int k = 0; k < j; k++) {
-              sum = sum + L[j][k] * U[k][j];
-          } */
-
-          #pragma omp sections
-          {
-            #pragma omp section
-            {
-              double local_sum = 0;
-              for (int k = 0; k <= j/8-1; k++) {
-                  local_sum = local_sum + L[j][k] * U[k][i];
-              }
-              #pragma omp critical
-              {sum = sum + local_sum;}
+        for(i=j;i<n;i++){
+            if(i%t == pid){
+                sum = 0;
+                for(k = 0; k < j; k++) {
+                    sum = sum + L[j][k] * U[k][i];
+                }
+                if (L[j][j] == 0) {				
+                    exit(0);
+                }
+                U[j][i] = (A[j][i] - sum) / L[j][j];
             }
-
-            #pragma omp section
-            {
-              double local_sum = 0;
-              for (int k = j/8; k <= 2*j/8-1; k++) {
-                  local_sum = local_sum + L[j][k] * U[k][i];
-              }
-              #pragma omp critical
-              {sum = sum + local_sum;}
-            }
-
-            #pragma omp section
-            {
-              double local_sum = 0;
-              for (int k = 2*j/8; k <= 3*j/8-1; k++) {
-                  local_sum = local_sum + L[j][k] * U[k][i];
-              }
-              #pragma omp critical
-              {sum = sum + local_sum;}
-            }
-
-            #pragma omp section
-            {
-              double local_sum = 0;
-              for (int k = 3*j/8; k <= 4*j/8-1; k++) {
-                  local_sum = local_sum + L[j][k] * U[k][i];
-              }
-              #pragma omp critical
-              {sum = sum + local_sum;}
-            }
-
-            #pragma omp section
-            {
-              double local_sum = 0;
-              for (int k = 4*j/8; k <= 5*j/8-1; k++) {
-                  local_sum = local_sum + L[j][k] * U[k][i];
-              }
-              #pragma omp critical
-              {sum = sum + local_sum;}
-            }
-
-            #pragma omp section
-            {
-              double local_sum = 0;
-              for (int k = 5*j/8; k <= 6*j/8-1; k++) {
-                  local_sum = local_sum + L[j][k] * U[k][i];
-              }
-              #pragma omp critical
-              {sum = sum + local_sum;}
-            }
-
-            #pragma omp section
-            {
-              double local_sum = 0;
-              for (int k = 6*j/8; k <= 7*j/8-1; k++) {
-                  local_sum = local_sum + L[j][k] * U[k][i];
-              }
-              #pragma omp critical
-              {sum = sum + local_sum;}
-            }
-
-            #pragma omp section
-            {
-              double local_sum = 0;
-              for (int k = 7*j/8; k <= j-1; k++) {
-                  local_sum = local_sum + L[j][k] * U[k][i];
-              }
-              #pragma omp critical
-              {sum = sum + local_sum;}
-            }
-          }
-            if (L[j][j] == 0) {
-                exit(0);
-            }
-            U[j][i] = (A[j][i] - sum) / L[j][j];
+            MPI_Bcast(
+            &U[j][i],
+            1,
+            MPI_DOUBLE,
+            i%t,
+            MPI_COMM_WORLD);
         }
     }
+ 
+ char fname1[100];
+sprintf(fname1, "output_U_%d_%d.txt", strat,t);
+write_output(fname1, U, n );
+char fname2[100];
+sprintf(fname2, "output_L_%d_%d.txt", strat,t);
+write_output(fname2, L, n ); 
+MPI_Finalize(); 
+return 0;
 }

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
-#include <time.h>
+// #include <time.h>
 #include <string.h>
 
 
@@ -10,7 +10,6 @@
 
 void write_output(char fname[], double **arr, int n)
 {
-    printf("writing output\n");
     FILE *f = fopen(fname, "w");
 
     for (int i = 0; i < n; i++)
@@ -26,13 +25,8 @@ void write_output(char fname[], double **arr, int n)
 
 int main(int argc, char* argv[]){
 
-    MPI_Init(&argc, &argv);
-    int t, pid;
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-    MPI_Comm_size(MPI_COMM_WORLD, &t);
-
     int size = atoi(argv[1]);
-    char input[10];
+    char input[100];
     strcpy(input, argv[2]);
     
     // int thr_proc = atoi(argv[3]);
@@ -47,7 +41,7 @@ int main(int argc, char* argv[]){
         exit(1);
     }
 
-    printf("going well\n");
+    // printf("going well\n");
 
     double **A;
     A = (double **)malloc(sizeof(double*) * size);
@@ -57,7 +51,7 @@ int main(int argc, char* argv[]){
     }
 
     // double inp[size][size];
-    printf("going well 2\n");
+    // printf("going well 2\n");
 
     double num;
     // while (fscanf(file, "%d", &num) > 0)
@@ -67,10 +61,10 @@ int main(int argc, char* argv[]){
     // }
 
     for(int i = 0; i < size; i++){
-        printf("going well loop\n");
+        // printf("going well loop\n");
         for(int j = 0; j < size; j++){
             fscanf(f, "%lf", &num);
-            printf("Scanned int: %f\n", num);
+            // printf("Scanned int: %f\n", num);
             A[i][j] = num;
         }
     }
@@ -106,6 +100,7 @@ int main(int argc, char* argv[]){
     //////////////////////////////////////////////////////////
     // printf("str0\n");
     ///////////////////////////////////////////////////////////
+
     int i, j, k;
     double sum = 0;
     for (i = 0; i < size; i++)
@@ -113,6 +108,11 @@ int main(int argc, char* argv[]){
         U[i][i] = 1;
         // All diagonal entries 1 in U
     }
+
+    MPI_Init(&argc, &argv);
+    int t, pid;
+    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+    MPI_Comm_size(MPI_COMM_WORLD, &t);
     for(j = 0; j < size; j++){
         for(i = j; i < size; i++){
             if(i%t == pid){
@@ -141,29 +141,33 @@ int main(int argc, char* argv[]){
             MPI_Bcast(&U[j][i], 1, MPI_DOUBLE, i%t, MPI_COMM_WORLD);
         }
     }
+
+    MPI_Finalize(); 
     /////////////////////////////////////////////////////
-    printf(".......................................................................\n");
-    for (int i = 0; i < size; i++)
-    {
-        for (int j = 0; j < size; j++)
-        {
-            // fscanf(f, "%d", &num);
-            printf("%f\n", A[i][j]);
-            // inp[i][j] = num;
-        }
-    }
-    printf(".......................................................................\n");
-    char out_4_A[] = "out_4_A.txt";
-    char out_4_L[] = "out_4_L.txt";
-    char out_4_U[] = "out_4_U.txt";
+    // printf(".......................................................................\n");
+    // for (int i = 0; i < size; i++)
+    // {
+    //     for (int j = 0; j < size; j++)
+    //     {
+    //         // fscanf(f, "%d", &num);
+    //         printf("%f\n", A[i][j]);
+    //         // inp[i][j] = num;
+    //     }
+    // }
+    // printf(".......................................................................\n");
+    // char out_4_A[] = "out_4_A.txt";
+    char out_4_L[100];
+    sprintf(out_4_L, "output_L_4_%d.txt", t);
+    char out_4_U[100];
+    sprintf(out_4_U, "output_U_4_%d.txt", t);
 
     
 
-    write_output(out_4_A, A, size);
+    // write_output(out_4_A, A, size);
     write_output(out_4_L, L, size);
     write_output(out_4_U, U, size);
     //////////////////////////////////////////////////////////
 
-    MPI_Finalize(); 
+    
     return 0;
 }

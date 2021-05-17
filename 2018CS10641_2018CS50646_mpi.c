@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
-// #include <time.h>
+#include <time.h>
 #include <string.h>
 
 
@@ -78,17 +78,14 @@ int main(int argc, char* argv[]){
     double **L;
     L = (double **)malloc(sizeof(double *) * size);
 
-    for (int i = 0; i < size; i++){
-        L[i] = (double *)malloc(size * sizeof(double));
-    }
-    // double L[size][size];
-    // double U[size][size];
     double **U;
     U = (double **)malloc(sizeof(double *) * size);
 
     for (int i = 0; i < size; i++){
+        L[i] = (double *)malloc(size * sizeof(double));
         U[i] = (double *)malloc(size * sizeof(double));
     }
+    
 
     for(int i = 0; i < size; i++){
         for(int j = 0; j < size; j++){
@@ -100,6 +97,9 @@ int main(int argc, char* argv[]){
     //////////////////////////////////////////////////////////
     // printf("str0\n");
     ///////////////////////////////////////////////////////////
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
 
     int i, j, k;
     double sum = 0;
@@ -167,6 +167,11 @@ int main(int argc, char* argv[]){
     write_output(out_4_L, L, size);
     write_output(out_4_U, U, size);
     //////////////////////////////////////////////////////////
+
+    end = clock();
+    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+    // printf("For strategy: 4, thr/proc: %d, Size: %d, pragram took: %f\n", t, size, cpu_time_used);
 
     
     return 0;

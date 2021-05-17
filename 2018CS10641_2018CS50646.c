@@ -59,32 +59,35 @@ void str_1(double **A, double **L, double **U, int n, int nthreads)
 
     for (j = 0; j < n; j++)
     {
+        omp_set_num_threads(nthreads);
+        #pragma omp parallel for
         for (i = j; i < n; i++)
         {
             sum = 0;
 
-            omp_set_num_threads(nthreads);
-            #pragma omp parallel for
+            
             for (k = 0; k < j; k++)
             {
-                #pragma omp critical
+                // #pragma omp critical
                 {sum = sum + L[i][k] * U[k][j];}
             }
-            #pragma omp barrier
+            // #pragma omp barrier
             L[i][j] = A[i][j] - sum;
         }
+
+        omp_set_num_threads(nthreads);
+        #pragma omp parallel for
         for (i = j; i < n; i++)
         {
             sum = 0;
 
-            omp_set_num_threads(nthreads);
-            #pragma omp parallel for
+            
             for (k = 0; k < j; k++)
             {
-                #pragma omp critical
+                // #pragma omp critical
                 {sum = sum + L[j][k] * U[k][i];}
             }
-            #pragma omp barrier
+            // #pragma omp barrier
             if (L[j][j] == 0)
             {
                 exit(0);
@@ -415,10 +418,7 @@ int main(int argc, char* argv[]){
     
     int thr_proc = atoi(argv[3]);
     int strategy = atoi(argv[4]);
-    // printf("%d\n", size);
-    // printf("%s\n", input);
-    // printf("%d\n", thr_proc);
-    // printf("%d\n", strategy);
+    
 
     FILE *f = fopen(input, "r");
     if (f == NULL)
@@ -441,11 +441,6 @@ int main(int argc, char* argv[]){
     // printf("going well 2\n");
 
     double num;
-    // while (fscanf(file, "%d", &num) > 0)
-    // {
-    //     integers[i] = num;
-    //     i++;
-    // }
 
     for(int i = 0; i < size; i++){
         // printf("going well loop\n");
@@ -468,8 +463,8 @@ int main(int argc, char* argv[]){
     for (int i = 0; i < size; i++){
         L[i] = (double *)malloc(size * sizeof(double));
     }
-    // double L[size][size];
-    // double U[size][size];
+
+
     double **U;
     U = (double **)malloc(sizeof(double *) * size);
 
@@ -485,22 +480,14 @@ int main(int argc, char* argv[]){
     }
 
     // double const **A = (double const **)inp;
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
 
     if(strategy == 0){
         // printf("str0\n");
         crout(inp, L, U, size);
-        // printf(".......................................................................\n");
-        // for (int i = 0; i < size; i++)
-        // {
-        //     for (int j = 0; j < size; j++)
-        //     {
-        //         // fscanf(f, "%d", &num);
-        //         printf("%f\n", inp[i][j]);
-        //         // inp[i][j] = num;
-        //     }
-        // }
-        // printf(".......................................................................\n");
-        // char out_0_A[] = "out_0_A.txt";
+        
         char out_0_L[100];
         sprintf(out_0_L, "output_L_%d_%d.txt", strategy, thr_proc);
         char out_0_U[100];
@@ -516,18 +503,7 @@ int main(int argc, char* argv[]){
     if(strategy == 1){
         // printf("str0\n");
         str_1(inp, L, U, size, thr_proc);
-        // printf(".......................................................................\n");
-        // for (int i = 0; i < size; i++)
-        // {
-        //     for (int j = 0; j < size; j++)
-        //     {
-        //         // fscanf(f, "%d", &num);
-        //         printf("%f\n", inp[i][j]);
-        //         // inp[i][j] = num;
-        //     }
-        // }
-        // printf(".......................................................................\n");
-        // char out_1_A[] = "out_1_A.txt";
+        
         char out_1_L[100];
         sprintf(out_1_L, "output_L_%d_%d.txt", strategy, thr_proc);
         char out_1_U[100];
@@ -542,18 +518,7 @@ int main(int argc, char* argv[]){
 
     if(strategy == 2){
         str_2(inp, L, U, size);
-        // printf(".......................................................................\n");
-        // for (int i = 0; i < size; i++)
-        // {
-        //     for (int j = 0; j < size; j++)
-        //     {
-        //         // fscanf(f, "%d", &num);
-        //         printf("%f\n", inp[i][j]);
-        //         // inp[i][j] = num;
-        //     }
-        // }
-        // printf(".......................................................................\n");
-        // char out_2_A[] = "out_2_A.txt";
+        
         char out_2_L[100];
         sprintf(out_2_L, "output_L_%d_%d.txt", strategy, thr_proc);
         char out_2_U[100];
@@ -568,18 +533,7 @@ int main(int argc, char* argv[]){
 
     if(strategy == 3){
         str_3(inp, L, U, size, thr_proc);
-        // printf(".......................................................................\n");
-        // for (int i = 0; i < size; i++)
-        // {
-        //     for (int j = 0; j < size; j++)
-        //     {
-        //         // fscanf(f, "%d", &num);
-        //         printf("%f\n", inp[i][j]);
-        //         // inp[i][j] = num;
-        //     }
-        // }
-        // printf(".......................................................................\n");
-        // char out_3_A[] = "out_3_A.txt";
+        
         char out_3_L[100];
         sprintf(out_3_L, "output_L_%d_%d.txt", strategy, thr_proc);
         char out_3_U[100];
@@ -591,6 +545,11 @@ int main(int argc, char* argv[]){
         write_output(out_3_L, L, size);
         write_output(out_3_U, U, size);
     }
+
+    end = clock();
+    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+    printf("For strategy: %d, thr/proc: %d, Size: %d, pragram took: %f\n", strategy, thr_proc, size, cpu_time_used);
 
     return 0;
 }

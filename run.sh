@@ -26,7 +26,7 @@ else
 			mpiexec -n $3 ./mpi_exec $1 $2;
 			
 		else
-			./exec $1 $2 $3 $4;
+			./exec.exe $1 $2 $3 $4;
 		fi
 
 	else

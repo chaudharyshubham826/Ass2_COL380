@@ -1035,10 +1035,14 @@ int main(int argc, char* argv[]){
         write_output(out_3_U, U, size);
     }
 
+    free(inp);
+    free(L);
+    free(U);
+
     end = clock();
     cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
 
-    // printf("For strategy: %d, thr/proc: %d, Size: %d, pragram took: %f\n", strategy, thr_proc, size, cpu_time_used);
+    printf("For strategy: %d, thr/proc: %d, Size: %d, pragram took: %f\n", strategy, thr_proc, size, cpu_time_used);
 
     return 0;
 }
